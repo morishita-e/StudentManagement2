@@ -1,9 +1,12 @@
 package raisetech.StudentManagement.controller;
 
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
+import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.put;
+import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.content;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
@@ -168,7 +171,7 @@ class StudentControllerTest {
             "name": "山田太郎",
             "kanaName": "ヤマダタロウ",
             "nickname": "タロウ",
-            "email": "invalid-email",  // 無効なメールアドレス
+            "email": "invalid-email",
             "area": "東京",
             "age": 25,
             "sex": "男",
@@ -191,5 +194,44 @@ class StudentControllerTest {
             .content(invalidJson))
         .andExpect(status().isBadRequest());  // 400 Bad Request が返されるを確認
   }
-}
 
+  @Test
+  void 受講生詳細の更新が実行できて空で返ってくること() throws Exception {
+    mockMvc.perform(put("/updateStudent").contentType(MediaType.APPLICATION_JSON).content(
+            """
+                {
+                  "student": {
+                  "id" : "12",
+                    "name": "江並康介",
+                    "kanaName": "エナミ",
+                    "nickname": "コウジ",
+                    "email": "test@example.com",
+                    "area": "東京",
+                    "age": 36,
+                    "sex": "男",
+                    "remark": ""
+                  },
+                  "studentCourseList": [
+                    {
+                      "id": "15",
+              "studentId": "12",
+              "courseName": "Javaコース",
+              "courseStartAt": "2024-04-27T10:50:39.833614",
+              "courseEndAt": "2025-04-27T10:50:39.833614"
+                    }
+                  ]
+                }
+              """
+        ))
+        .andExpect(status().isOk());
+
+    verify(service, times(1)).updateStudent(any());
+  }
+
+  @Test
+  void 受講生詳細の例外APIが実行できてステータスが400で返ってくること() throws Exception{
+    mockMvc.perform(get("/exception"))
+        .andExpect(status().is4xxClientError())
+        .andExpect(content().string("このAPIは現在利用できません。古いURLとなっています"));
+  }
+}

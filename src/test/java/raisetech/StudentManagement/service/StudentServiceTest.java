@@ -4,7 +4,6 @@ import static org.junit.jupiter.api.Assertions.*;
 import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
-
 import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.List;
@@ -31,7 +30,7 @@ class StudentServiceTest {
   private StudentService sut;
 
   @BeforeEach
-  void before() {
+  void before(){
     sut = new StudentService(repository, converter);
   }
 
@@ -50,8 +49,8 @@ class StudentServiceTest {
   }
 
   @Test
-  void 受講生詳細の検索_リポジトリの処理が適切に呼び出せていること() {
-    String id = "999";
+  void 受講生詳細の検索_リポジトリの処理が適切に呼び出せていること(){
+    String id ="999";
     Student student = new Student();
     student.setId(id);
     when(repository.searchStudent(id)).thenReturn(student);
@@ -67,7 +66,7 @@ class StudentServiceTest {
   }
 
   @Test
-  void 受講生詳細の登録_リポジトリの処理が適切に呼び出せていること() {
+  void 受講生詳細の登録_リポジトリの処理が適切に呼び出せていること(){
     Student student = new Student();
     StudentCourse studentCourse = new StudentCourse();
     List<StudentCourse> studentCourseList = List.of(studentCourse);
@@ -80,7 +79,7 @@ class StudentServiceTest {
   }
 
   @Test
-  void 受講生詳細の登録_初期化が行われていること() {
+  void 受講生詳細の登録_初期化が行われていること(){
     String id = "999";
     Student student = new Student();
     student.setId(id);
@@ -89,13 +88,12 @@ class StudentServiceTest {
     sut.initStudentsCourse(studentCourse, student.getId());
 
     assertEquals(id, studentCourse.getStudentId());
-    assertEquals(LocalDateTime.now().getHour(), studentCourse.getCourseStartAt().getHour());
-    assertEquals(LocalDateTime.now().plusYears(1).getYear(),
-        studentCourse.getCourseEndAt().getYear());
+    assertEquals(LocalDateTime.now().getHour(),studentCourse.getCourseStartAt().getHour());
+    assertEquals(LocalDateTime.now().plusYears(1).getYear(),studentCourse.getCourseEndAt().getYear());
   }
 
   @Test
-  void 受講生詳細の更新_リポジトリの処理が適切に呼び出せていること() {
+  void 受講生詳細の更新_リポジトリの処理が適切に呼び出せていること(){
     Student student = new Student();
     StudentCourse studentCourse = new StudentCourse();
     List<StudentCourse> studentCourseList = List.of(studentCourse);
