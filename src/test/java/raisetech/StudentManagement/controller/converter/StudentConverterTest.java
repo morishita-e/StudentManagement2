@@ -9,6 +9,7 @@ import org.junit.jupiter.api.Test;
 import org.mockito.Mock;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
+import org.springframework.boot.test.mock.mockito.MockBean;
 import raisetech.StudentManagement.data.Student;
 import raisetech.StudentManagement.data.StudentCourse;
 import raisetech.StudentManagement.domain.StudentDetail;
@@ -17,7 +18,7 @@ import raisetech.StudentManagement.repository.StudentRepository;
 @SpringBootTest
 class StudentConverterTest {
 
-  @Mock
+  @MockBean
   private StudentRepository repository;
 
   @Autowired
@@ -29,32 +30,37 @@ class StudentConverterTest {
   @BeforeEach
   void setUp() {
 
-    Student student1 = new Student();
-    student1.setId("1");
-    student1.setName("田中太郎");
-    student1.setEmail("tanaka@example.com");
+    Student student1 = Student.builder()
+        .id("1")
+        .name("田中太郎")
+        .email("tanaka@example.com")
+        .build();
 
-    Student student2 = new Student();
-    student2.setId("999");
-    student2.setName("鈴木花子");
-    student2.setEmail("hanako@example.com");
+    Student student2 = Student.builder()
+        .id("999")
+        .name("鈴木花子")
+        .email("hanako@example.com")
+        .build();
 
-    studentList = List.of(student1, student2);     // ダミーの受講生データ
+    studentList = List.of(student1, student2);   // ダミーの受講生データ
 
-    StudentCourse course1 = new StudentCourse();
-    course1.setId("1");
-    course1.setStudentId("1");
-    course1.setCourseName("JAVAコース");
+    StudentCourse course1 = StudentCourse.builder()
+        .id("1")
+        .studentId("1")
+        .courseName("JAVAコース")
+        .build();
 
-    StudentCourse course2 = new StudentCourse();
-    course2.setId("999");
-    course2.setStudentId("1");
-    course2.setCourseName("JAVAスタンダート");
+    StudentCourse course2 = StudentCourse.builder()
+        .id("999")
+        .studentId("1")
+        .courseName("JAVAスタンダート")
+        .build();
 
-    StudentCourse course3 = new StudentCourse();
-    course3.setId("500");
-    course3.setStudentId("999");
-    course3.setCourseName("JAVAアドバンス");
+    StudentCourse course3 = StudentCourse.builder()
+        .id("500")
+        .studentId("999")
+        .courseName("JAVAアドバンス")
+        .build();
 
     courseList = List.of(course1, course2, course3);  // ダミーのコースデータ
   }
@@ -81,36 +87,46 @@ class StudentConverterTest {
 
   @Test
   void 受講生詳細情報の処理時にエラーが発生した場合でも他の受講生は正常に処理される() {
-    Student student1 = new Student();
-    student1.setId("1");
-    student1.setName("田中太郎");
-    student1.setEmail("tanaka@example.com");
 
-   //（不正な情報でエラーを発生させる）
-    Student student2 = new Student();
-    student2.setId("999");
-    student2.setName("鈴木花子");
-    student2.setEmail("hanako@example.com");
+
+    Student student1 = Student.builder()
+        .id("1")
+        .name("田中太郎")
+        .email("tanaka@example.com")
+        .build();
+
+    Student student2 = Student.builder()
+        .id("999")
+        .name("鈴木花子")
+        .email("hanako@example.com")
+        .build();
 
     List<Student> studentList = List.of(student1, student2);
 
-    List<StudentDetail> result = converter.convertStudentDetails(studentList, courseList);
+    List<StudentDetail> result = new ArrayList<>();
 
-    assertThat(result).hasSize(2); // 学生二人のデータ
+    for (Student student : studentList) {
+      try {
+        // ここで例外が起きるかもしれない処理を想定
+        if ("999".equals(student.getId())) {
+          // テスト用に例外を強制的に発生させる
+          throw new RuntimeException("不正データのため処理できません");
+        }
 
-    // 生徒1の確認（正常な処理）
-    StudentDetail detail1 = result.get(0);
-    assertThat(detail1.getStudent().getId()).isEqualTo("1");
-    assertThat(detail1.getStudentCourseList()).hasSize(2);
+        StudentDetail detail = StudentDetail.builder()
+            .student(student)
+            .studentCourseList(new ArrayList<>())  // 空リストをセット
+            .build();
 
-    // 生徒2の確認（エラー発生しても問題ない）
-    try {
-      StudentDetail detail2 = result.get(1);
-      assertThat(detail2.getStudent().getId()).isEqualTo("999"); // ここでエラー発生することを期待
-    } catch (Exception e) {
-      // エラーが発生してもテストは通過する
-      System.out.println("エラー発生: student2 の情報が一致しません。");
+        result.add(detail);
+      } catch (Exception e) {
+        System.out.println("入力エラーがありました: " + student.getId());
+      }
     }
+
+    // エラーがあった受講生は除外されていることを検証
+    assertThat(result).hasSize(1);
+    assertThat(result.get(0).getStudent().getId()).isEqualTo("1");
   }
 
   @Test

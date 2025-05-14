@@ -49,32 +49,32 @@ class StudentControllerTest {
   private Validator validator = Validation.buildDefaultValidatorFactory().getValidator();
 
   private Student createValidStudent() {
-    Student student = new Student();
-    student.setId("123");
-    student.setName("山田太郎");
-    student.setKanaName("ヤマダタロウ");
-    student.setNickname("タロウ");
-    student.setEmail("taro@example.com");
-    student.setArea("東京");
-    student.setAge(25);
-    student.setSex("男");
-    student.setRemark("特になし");
-    student.setDeleted(false);
-    return student;
+    return Student.builder()
+        .id("123")
+        .name("山田太郎")
+        .kanaName("ヤマダタロウ")
+        .nickname("タロウ")
+        .email("taro@example.com")
+        .area("東京")
+        .age(25)
+        .sex("男")
+        .remark("特になし")
+        .isDeleted(false)
+        .build();
   }
 
   private StudentCourse createValidStudentCourse(String studentId) {
-    StudentCourse studentCourse = new StudentCourse();
-    studentCourse.setId("999");
-    studentCourse.setStudentId(studentId);
-    studentCourse.setCourseName("Javaスタンダードコース");
 
     LocalDateTime start = LocalDateTime.of(2024, 4, 1, 0, 0);
     LocalDateTime end = start.plusYears(1);
-    studentCourse.setCourseStartAt(start);
-    studentCourse.setCourseEndAt(end);
 
-    return studentCourse;
+    return StudentCourse.builder()
+        .id("999")
+        .studentId(studentId)
+        .courseName("Javaスタンダードコース")
+        .courseStartAt(start)
+        .courseEndAt(end)
+        .build();
   }
 
   private ObjectMapper objectMapper;
@@ -87,8 +87,11 @@ class StudentControllerTest {
   }
 
   @Test
-  void 受講生詳細の一覧検索が実行できて空のリストが返ってくること() throws Exception {
-    when(service.searchStudentList()).thenReturn(List.of(new StudentDetail()));
+  void 受講生詳細の一覧検索が実行できて空データが入っているリストが返ってくること() throws Exception {
+    StudentDetail emptyDetail = StudentDetail.builder()
+        .student(Student.builder().build())
+        .studentCourseList(List.of())
+        .build();
 
     mockMvc.perform(get("/studentList"))
         .andExpect(status().isOk());
@@ -98,15 +101,15 @@ class StudentControllerTest {
 
   @Test
   void 受講生詳細の受講生で適切な値を入力した時に入力チェックに異常が発生しないこと() {
-    Student student = new Student();
-
-    student.setId("1");
-    student.setName("江並公示");
-    student.setKanaName("エナミコウジ");
-    student.setNickname("エナミ");
-    student.setEmail("test@example.com");
-    student.setArea("奈良");
-    student.setSex("男性");
+    Student student = Student.builder()
+        .id("1")
+        .name("江並公示")
+        .kanaName("エナミコウジ")
+        .nickname("エナミ")
+        .email("test@example.com")
+        .area("奈良")
+        .sex("男性")
+        .build();
 
     Set<ConstraintViolation<Student>> violations = validator.validate(student);
 
@@ -115,15 +118,15 @@ class StudentControllerTest {
 
   @Test
   void 受講生詳細の受講生でIDに数字以外を用いた時にチェックが掛かること() {
-    Student student = new Student();
-
-    student.setId("テストです");
-    student.setName("江並公示");
-    student.setKanaName("エナミコウジ");
-    student.setNickname("エナミ");
-    student.setEmail("test@example.com");
-    student.setArea("奈良");
-    student.setSex("男性");
+    Student student = Student.builder()
+        .id("テストです")
+        .name("江並公示")
+        .kanaName("エナミコウジ")
+        .nickname("エナミ")
+        .email("test@example.com")
+        .area("奈良")
+        .sex("男性")
+        .build();
 
     Set<ConstraintViolation<Student>> violations = validator.validate(student);
 
@@ -136,7 +139,10 @@ class StudentControllerTest {
   void 受講生のIDで特定の受講生情報を検索します() throws Exception {
     Student student = createValidStudent();
     List<StudentCourse> courseList = List.of(createValidStudentCourse(student.getId()));
-    StudentDetail studentDetail = new StudentDetail(student, courseList);
+    StudentDetail studentDetail = StudentDetail.builder()
+        .student(student)
+        .studentCourseList(courseList)
+        .build();
 
     when(service.searchStudent("123")).thenReturn(studentDetail);
 
@@ -153,7 +159,10 @@ class StudentControllerTest {
   void 受講生登録で適切な値を入力した時に入力チェックに異常が発生しないこと() throws Exception {
     Student student = createValidStudent();                                            // ダミーデータ作成
     StudentCourse studentCourse = createValidStudentCourse(student.getId());
-    StudentDetail studentDetail = new StudentDetail(student, List.of(studentCourse));
+    StudentDetail studentDetail = StudentDetail.builder()
+        .student(student)
+        .studentCourseList(List.of(studentCourse))
+        .build();
 
     mockMvc.perform(post("/registerStudent")
             .contentType(MediaType.APPLICATION_JSON)
