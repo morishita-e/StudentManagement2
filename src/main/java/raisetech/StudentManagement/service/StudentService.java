@@ -46,7 +46,10 @@ public class StudentService {
   public StudentDetail searchStudent(String id) {
     Student student = repository.searchStudent(id);
     List<StudentCourse> studentsCourse = repository.searchStudentCourse(student.getId());
-    return new StudentDetail(student, studentsCourse);
+    return StudentDetail.builder()
+        .student(student)
+        .studentCourseList(studentsCourse)
+        .build();
   }
 
   /**
