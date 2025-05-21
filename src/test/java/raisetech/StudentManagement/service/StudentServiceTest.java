@@ -4,7 +4,6 @@ import static org.junit.jupiter.api.Assertions.*;
 import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
-
 import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.List;
@@ -31,7 +30,7 @@ class StudentServiceTest {
   private StudentService sut;
 
   @BeforeEach
-  void before() {
+  void before(){
     sut = new StudentService(repository, converter);
   }
 
@@ -50,14 +49,18 @@ class StudentServiceTest {
   }
 
   @Test
-  void 受講生詳細の検索_リポジトリの処理が適切に呼び出せていること() {
-    String id = "999";
-    Student student = new Student();
-    student.setId(id);
+  void 受講生詳細の検索_リポジトリの処理が適切に呼び出せていること(){
+    String id ="999";
+    Student student = Student.builder()
+        .id(id)
+        .build();
     when(repository.searchStudent(id)).thenReturn(student);
     when(repository.searchStudentCourse(id)).thenReturn(new ArrayList<>());
 
-    StudentDetail expected = new StudentDetail(student, new ArrayList<>());
+    StudentDetail expected = StudentDetail.builder()
+        .student(student)
+        .studentCourseList(new ArrayList<>())
+        .build();
 
     StudentDetail actual = sut.searchStudent(id);
 
@@ -67,11 +70,14 @@ class StudentServiceTest {
   }
 
   @Test
-  void 受講生詳細の登録_リポジトリの処理が適切に呼び出せていること() {
-    Student student = new Student();
-    StudentCourse studentCourse = new StudentCourse();
+  void 受講生詳細の登録_リポジトリの処理が適切に呼び出せていること(){
+    Student student = Student.builder().build();
+    StudentCourse studentCourse = StudentCourse.builder().build();
     List<StudentCourse> studentCourseList = List.of(studentCourse);
-    StudentDetail studentDetail = new StudentDetail(student, studentCourseList);
+    StudentDetail studentDetail = StudentDetail.builder()
+        .student(student)
+        .studentCourseList(studentCourseList)
+        .build();
 
     sut.registerStudent(studentDetail);
 
@@ -80,26 +86,29 @@ class StudentServiceTest {
   }
 
   @Test
-  void 受講生詳細の登録_初期化が行われていること() {
+  void 受講生詳細の登録_初期化が行われていること(){
     String id = "999";
-    Student student = new Student();
-    student.setId(id);
-    StudentCourse studentCourse = new StudentCourse();
+    Student student = Student.builder()
+        .id(id)
+        .build();
+    StudentCourse studentCourse = StudentCourse.builder().build();
 
     sut.initStudentsCourse(studentCourse, student.getId());
 
     assertEquals(id, studentCourse.getStudentId());
-    assertEquals(LocalDateTime.now().getHour(), studentCourse.getCourseStartAt().getHour());
-    assertEquals(LocalDateTime.now().plusYears(1).getYear(),
-        studentCourse.getCourseEndAt().getYear());
+    assertEquals(LocalDateTime.now().getHour(),studentCourse.getCourseStartAt().getHour());
+    assertEquals(LocalDateTime.now().plusYears(1).getYear(),studentCourse.getCourseEndAt().getYear());
   }
 
   @Test
-  void 受講生詳細の更新_リポジトリの処理が適切に呼び出せていること() {
-    Student student = new Student();
-    StudentCourse studentCourse = new StudentCourse();
+  void 受講生詳細の更新_リポジトリの処理が適切に呼び出せていること(){
+    Student student = Student.builder().build();
+    StudentCourse studentCourse = StudentCourse.builder().build();
     List<StudentCourse> studentCourseList = List.of(studentCourse);
-    StudentDetail studentDetail = new StudentDetail(student, studentCourseList);
+    StudentDetail studentDetail = StudentDetail.builder()
+        .student(student)
+        .studentCourseList(studentCourseList)
+        .build();
 
     sut.updateStudent(studentDetail);
 
