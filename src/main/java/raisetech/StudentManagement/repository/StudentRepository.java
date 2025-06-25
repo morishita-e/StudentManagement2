@@ -28,7 +28,7 @@ public interface StudentRepository {
    * @param id 受講生ID
    * @return 受講生
    */
-  Student searchStudent(String id);
+  Student searchStudent(Integer id);
 
   /**
    * 受講生のコース情報の全件検索を行います。
@@ -44,8 +44,8 @@ public interface StudentRepository {
    * @param studentId 受講生ID
    * @return 受講生IDに紐づく受講生コース情報
    */
-  @Select("SELECT * FROM students_courses WHERE student_id = #{studentId}")
-  List<StudentCourse> searchStudentCourse(String studentId);
+  @Select("SELECT * FROM students_courses WHERE studentId = #{studentId}")
+  List<StudentCourse> searchStudentCourse(Integer studentId);
 
   /**
    * 受講生を新規登録します。 IDに関しては自動採番を行う。
@@ -63,8 +63,8 @@ public interface StudentRepository {
    *
    * @param studentCourse 受講生コース情報
    */
-  @Insert("INSERT INTO students_courses(student_id, course_name, course_start_at, course_end_at) "
-      + "VALUES(#{studentId}, #{courseName}, #{courseStartAt}, #{courseEndAt})")
+  @Insert("INSERT INTO students_courses(student_id, course_name, course_start_at, course_end_at, application_status) "
+      + "VALUES(#{studentId}, #{courseName}, #{courseStartAt}, #{courseEndAt}, #{applicationStatus})")
   @Options(useGeneratedKeys = true, keyProperty = "id")
   void registerStudentCourse(StudentCourse studentCourse);
 
@@ -82,7 +82,26 @@ public interface StudentRepository {
    *
    * @param studentCourse 受講生コース情報
    */
-  @Update("UPDATE students_courses SET course_name =#{courseName} WHERE id= #{id}")
+  @Update("UPDATE students_courses SET course_name = #{courseName}, application_status = #{applicationStatus} WHERE id = #{id}")
   void updateStudentCourse(StudentCourse studentCourse);
+
+  //課題31以降
+  /**
+   * 名前で受講生を検索します（部分一致）。
+   *
+   * @param name 名前（部分一致）
+   * @return 条件に一致する受講生リスト
+   */
+  @Select("SELECT * FROM students WHERE name LIKE CONCAT('%', #{name}, '%') AND is_deleted = false")
+  List<Student> findByName(String name);
+
+  /**
+   * メールで受講生を検索します（完全一致）。
+   *
+   * @param email メール（完全一致）
+   * @return 条件に一致する受講生リスト
+   */
+  @Select("SELECT * FROM students WHERE email = #{email} AND is_deleted = false")
+  List<Student> findByEmail(String email);
 }
 

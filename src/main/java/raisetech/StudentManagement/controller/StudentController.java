@@ -2,8 +2,6 @@ package raisetech.StudentManagement.controller;
 
 import io.swagger.v3.oas.annotations.Operation;
 import jakarta.validation.Valid;
-import jakarta.validation.constraints.NotBlank;
-import jakarta.validation.constraints.Pattern;
 import java.util.List;
 import org.apache.ibatis.javassist.NotFoundException;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -15,7 +13,9 @@ import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.PutMapping;
 import org.springframework.web.bind.annotation.RequestBody;
+import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
+import raisetech.StudentManagement.data.StudentCourse;
 import raisetech.StudentManagement.domain.StudentDetail;
 import raisetech.StudentManagement.service.StudentService;
 
@@ -52,8 +52,7 @@ public class StudentController {
    */
   @Operation(summary = "受講生検索", description = "受講生IDで特定の受講生情報を取得します。")
   @GetMapping("/student/{id}")
-  public StudentDetail getStudent(
-      @PathVariable @NotBlank @Pattern(regexp = "^\\d+$") String id) {
+  public StudentDetail getStudent(@PathVariable Integer id) {
     return service.searchStudent(id);
   }
 
@@ -94,4 +93,39 @@ public class StudentController {
   public ResponseEntity<String> handleNotFoundException(NotFoundException ex) {
     return ResponseEntity.badRequest().body(ex.getMessage());
   }
+//課題31以降
+  /**
+   * 名前で受講生を検索します（部分一致）。
+   *
+   * @param name 名前（部分一致）
+   * @return 条件に一致する受講生リスト
+   */
+  @Operation(summary = "名前で受講生検索", description = "部分一致で受講生の名前を検索します。")
+  @GetMapping("/student/searchByName")
+  public List<StudentDetail> searchByName(@RequestParam String name) {
+    return service.searchByName(name);
+  }
+
+  /**
+   * メールで受講生を検索します（完全一致）。
+   *
+   * @param email メール（完全一致）
+   * @return 条件に一致する受講生リスト
+   */
+  @GetMapping("/studentList/email")
+  public List<StudentDetail> searchByEmail(@RequestParam String email) {
+    return service.searchByEmail(email);
+  }
+
+  /**
+   * 受講生コース情報の一覧取得を行います。
+   *
+   * @return 受講生コース情報のリスト（全件）
+   */
+  @Operation(summary = "受講生コース一覧取得", description = "全ての受講生コース情報を取得します。")
+  @GetMapping("/studentCourses")
+  public List<StudentCourse> getStudentCourseList() {
+    return service.getAllStudentCourses();
+  }
+
 }
