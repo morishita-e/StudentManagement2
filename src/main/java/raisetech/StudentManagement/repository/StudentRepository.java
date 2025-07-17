@@ -45,7 +45,7 @@ public interface StudentRepository {
    * @return 受講生IDに紐づく受講生コース情報
    */
   @Select("SELECT * FROM students_courses WHERE student_id = #{studentId}")
-　List<StudentCourse> searchStudentCourse(Integer studentId);
+List<StudentCourse> searchStudentCourse(Integer studentId);
 
   /**
    * 受講生を新規登録します。 IDに関しては自動採番を行う。
