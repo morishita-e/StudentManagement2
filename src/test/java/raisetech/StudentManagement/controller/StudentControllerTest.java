@@ -1,9 +1,12 @@
 package raisetech.StudentManagement.controller;
 
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
+import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.put;
+import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.content;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
@@ -44,10 +47,9 @@ class StudentControllerTest {
   private StudentService service;
 
   private Validator validator = Validation.buildDefaultValidatorFactory().getValidator();
-
   private Student createValidStudent() {
     Student student = new Student();
-    student.setId("123");
+    student.setId(123);
     student.setName("山田太郎");
     student.setKanaName("ヤマダタロウ");
     student.setNickname("タロウ");
@@ -60,19 +62,19 @@ class StudentControllerTest {
     return student;
   }
 
-  private StudentCourse createValidStudentCourse(String studentId) {
-    StudentCourse studentCourse = new StudentCourse();
-    studentCourse.setId("999");
-    studentCourse.setStudentId(studentId);
-    studentCourse.setCourseName("Javaスタンダードコース");
+ private StudentCourse createValidStudentCourse(Integer studentId) {
+   LocalDateTime start = LocalDateTime.of(2024, 4, 1, 0, 0);
+   LocalDateTime end = start.plusYears(1);
 
-    LocalDateTime start = LocalDateTime.of(2024, 4, 1, 0, 0);
-    LocalDateTime end = start.plusYears(1);
-    studentCourse.setCourseStartAt(start);
-    studentCourse.setCourseEndAt(end);
-
-    return studentCourse;
-  }
+   StudentCourse course = new StudentCourse();
+   course.setId(999);
+   course.setStudentId(studentId);
+   course.setCourseName("Javaスタンダードコース");
+   course.setCourseStartAt(start);
+   course.setCourseEndAt(end);
+   course.setApplicationStatus("仮申込");
+   return course;
+ }
 
   private ObjectMapper objectMapper;
 
@@ -84,8 +86,10 @@ class StudentControllerTest {
   }
 
   @Test
-  void 受講生詳細の一覧検索が実行できて空のリストが返ってくること() throws Exception {
-    when(service.searchStudentList()).thenReturn(List.of(new StudentDetail()));
+  void 受講生詳細の一覧検索が実行できて空データが入っているリストが返ってくること() throws Exception {
+    StudentDetail emptyDetail = new StudentDetail();
+    emptyDetail.setStudent(new Student());
+    emptyDetail.setStudentCourseList(List.of());
 
     mockMvc.perform(get("/studentList"))
         .andExpect(status().isOk());
@@ -96,8 +100,7 @@ class StudentControllerTest {
   @Test
   void 受講生詳細の受講生で適切な値を入力した時に入力チェックに異常が発生しないこと() {
     Student student = new Student();
-
-    student.setId("1");
+    student.setId(1);
     student.setName("江並公示");
     student.setKanaName("エナミコウジ");
     student.setNickname("エナミ");
@@ -111,31 +114,15 @@ class StudentControllerTest {
   }
 
   @Test
-  void 受講生詳細の受講生でIDに数字以外を用いた時にチェックが掛かること() {
-    Student student = new Student();
-
-    student.setId("テストです");
-    student.setName("江並公示");
-    student.setKanaName("エナミコウジ");
-    student.setNickname("エナミ");
-    student.setEmail("test@example.com");
-    student.setArea("奈良");
-    student.setSex("男性");
-
-    Set<ConstraintViolation<Student>> violations = validator.validate(student);
-
-    assertThat(violations.size()).isEqualTo(1);
-    assertThat(violations).extracting("message")
-        .containsOnly("数字のみを入力するようにしてください。");
-  }
-
-  @Test
   void 受講生のIDで特定の受講生情報を検索します() throws Exception {
     Student student = createValidStudent();
     List<StudentCourse> courseList = List.of(createValidStudentCourse(student.getId()));
-    StudentDetail studentDetail = new StudentDetail(student, courseList);
 
-    when(service.searchStudent("123")).thenReturn(studentDetail);
+    StudentDetail studentDetail = new StudentDetail();
+    studentDetail.setStudent(student);
+    studentDetail.setStudentCourseList(courseList);
+
+    when(service.searchStudent(123)).thenReturn(studentDetail);
 
     mockMvc.perform(get("/student/123"))
         .andExpect(status().isOk())
@@ -143,20 +130,22 @@ class StudentControllerTest {
         .andExpect(jsonPath("$.student.name").value("山田太郎"))
         .andExpect(jsonPath("$.studentCourseList[0].courseName").value("Javaスタンダードコース"));
 
-    verify(service, times(1)).searchStudent("123");
+    verify(service, times(1)).searchStudent(123);
   }
 
   @Test
   void 受講生登録で適切な値を入力した時に入力チェックに異常が発生しないこと() throws Exception {
-    Student student = createValidStudent();                                            // ダミーデータ作成
+    Student student = createValidStudent();
     StudentCourse studentCourse = createValidStudentCourse(student.getId());
-    StudentDetail studentDetail = new StudentDetail(student, List.of(studentCourse));
+
+    StudentDetail studentDetail = new StudentDetail();
+    studentDetail.setStudent(student);
+    studentDetail.setStudentCourseList(List.of(studentCourse));
 
     mockMvc.perform(post("/registerStudent")
             .contentType(MediaType.APPLICATION_JSON)
             .content(objectMapper.writeValueAsString(studentDetail)))
-        .andExpect(
-            status().isOk());                                                  // ステータスコード200（成功）を確認
+        .andExpect(status().isOk());
   }
 
   @Test
@@ -164,11 +153,11 @@ class StudentControllerTest {
     String invalidJson = """
         {
           "student": {
-            "id": "123",
+            "id": 123,
             "name": "山田太郎",
             "kanaName": "ヤマダタロウ",
             "nickname": "タロウ",
-            "email": "invalid-email",  // 無効なメールアドレス
+            "email": "invalid-email",
             "area": "東京",
             "age": 25,
             "sex": "男",
@@ -177,11 +166,12 @@ class StudentControllerTest {
           },
           "studentCourseList": [
             {
-              "id": "100",
-              "studentId": "123",
+              "id": 100,
+              "studentId": 123,
               "courseName": "Javaスタンダードコース",
               "courseStartAt": "2024-04-01T00:00:00",
-              "courseEndAt": "2025-04-01T00:00:00"
+              "courseEndAt": "2025-04-01T00:00:00",
+              "ApplicationStatus": "本申込"
             }
           ]
         }
@@ -191,5 +181,86 @@ class StudentControllerTest {
             .content(invalidJson))
         .andExpect(status().isBadRequest());  // 400 Bad Request が返されるを確認
   }
+
+  @Test
+  void 受講生詳細の更新が実行できて空で返ってくること() throws Exception {
+    mockMvc.perform(put("/updateStudent").contentType(MediaType.APPLICATION_JSON).content(
+            """
+                {
+                  "student": {
+                  "id" : 12,
+                    "name": "江並康介",
+                    "kanaName": "エナミ",
+                    "nickname": "コウジ",
+                    "email": "test@example.com",
+                    "area": "東京",
+                    "age": 36,
+                    "sex": "男",
+                    "remark": ""
+                  },
+                  "studentCourseList": [
+                    {
+                      "id": 15,
+              "studentId": 12,
+              "courseName": "Javaコース",
+              "courseStartAt": "2024-04-27T10:50:39.833614",
+              "courseEndAt": "2025-04-27T10:50:39.833614",
+              "applicationStatus": "本申込"
+                    }
+                  ]
+                }
+              """
+        ))
+        .andExpect(status().isOk());
+
+    verify(service, times(1)).updateStudent(any());
+  }
+
+  @Test
+  void 受講生詳細の例外APIが実行できてステータスが400で返ってくること() throws Exception{
+    mockMvc.perform(get("/exception"))
+        .andExpect(status().is4xxClientError())
+        .andExpect(content().string("このAPIは現在利用できません。古いURLとなっています"));
+  }
+//課題31以降
+@Test
+void 名前で部分一致検索ができること() throws Exception {
+  Student student = createValidStudent(); // 山田太郎
+  StudentCourse course = createValidStudentCourse(student.getId());
+
+  StudentDetail detail = new StudentDetail();
+  detail.setStudent(student);
+  detail.setStudentCourseList(List.of(course));
+
+  when(service.searchByName("山田")).thenReturn(List.of(detail));
+
+  mockMvc.perform(get("/student/searchByName").param("name", "山田"))
+      .andExpect(status().isOk())
+      .andExpect(jsonPath("$[0].student.name").value("山田太郎"))
+      .andExpect(jsonPath("$[0].studentCourseList[0].courseName").value("Javaスタンダードコース"))
+      .andExpect(jsonPath("$[0].studentCourseList[0].applicationStatus").value("仮申込"));
+
+  verify(service, times(1)).searchByName("山田");
 }
 
+  @Test
+  void メールで完全一致検索ができること() throws Exception {
+    Student student = createValidStudent(); // 山田太郎
+    StudentCourse course = createValidStudentCourse(student.getId());
+
+    StudentDetail detail = new StudentDetail();
+    detail.setStudent(student);
+    detail.setStudentCourseList(List.of(course));
+
+    when(service.searchByEmail("taro@example.com")).thenReturn(List.of(detail));
+
+    mockMvc.perform(get("/studentList/email").param("email", "taro@example.com"))
+        .andExpect(status().isOk())
+        .andExpect(jsonPath("$[0].student.name").value("山田太郎"))
+        .andExpect(jsonPath("$[0].studentCourseList[0].courseName").value("Javaスタンダードコース"))
+        .andExpect(jsonPath("$[0].studentCourseList[0].applicationStatus").value("仮申込"));
+
+    verify(service, times(1)).searchByEmail("taro@example.com");
+  }
+
+}
