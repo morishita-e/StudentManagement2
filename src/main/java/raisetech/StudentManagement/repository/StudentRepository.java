@@ -44,7 +44,7 @@ public interface StudentRepository {
    * @param studentId 受講生ID
    * @return 受講生IDに紐づく受講生コース情報
    */
-  @Select("SELECT * FROM students_courses WHERE student_id = #{studentId}")
+  @Select("SELECT * FROM students_courses WHERE studentId = #{studentId}")
   List<StudentCourse> searchStudentCourse(Integer studentId);
 
   /**
@@ -63,7 +63,7 @@ public interface StudentRepository {
    *
    * @param studentCourse 受講生コース情報
    */
-  @Insert("INSERT INTO students_courses(student_id, course_name, course_start_at, course_end_at, application_status) "
+  @Insert("INSERT INTO students_courses(studentId, courseName, courseStartAt, courseEndAt, applicationStatus) "
       + "VALUES(#{studentId}, #{courseName}, #{courseStartAt}, #{courseEndAt}, #{applicationStatus})")
   @Options(useGeneratedKeys = true, keyProperty = "id")
   void registerStudentCourse(StudentCourse studentCourse);
@@ -82,7 +82,7 @@ public interface StudentRepository {
    *
    * @param studentCourse 受講生コース情報
    */
-  @Update("UPDATE students_courses SET course_name = #{courseName}, application_status = #{applicationStatus} WHERE id = #{id}")
+  @Update("UPDATE students_courses SET courseName = #{courseName}, applicationStatus = #{applicationStatus} WHERE id = #{id}")
   void updateStudentCourse(StudentCourse studentCourse);
 
   //課題31以降
