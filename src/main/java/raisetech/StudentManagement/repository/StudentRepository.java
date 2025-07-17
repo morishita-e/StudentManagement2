@@ -63,7 +63,7 @@ List<StudentCourse> searchStudentCourse(Integer studentId);
    *
    * @param studentCourse 受講生コース情報
    */
-  @Insert("INSERT INTO students_courses(student_id, course_name, course_start_at, course_end_at, application_status) "
+  @Insert("INSERT INTO students_courses(studentId, courseName, courseStartAt, courseEndAt, applicationStatus) "
       + "VALUES(#{studentId}, #{courseName}, #{courseStartAt}, #{courseEndAt}, #{applicationStatus})")
   @Options(useGeneratedKeys = true, keyProperty = "id")
   void registerStudentCourse(StudentCourse studentCourse);
@@ -82,7 +82,7 @@ List<StudentCourse> searchStudentCourse(Integer studentId);
    *
    * @param studentCourse 受講生コース情報
    */
-  @Update("UPDATE students_courses SET course_name = #{courseName}, application_status = #{applicationStatus} WHERE id = #{id}")
+  @Update("UPDATE students_courses SET courseName = #{courseName}, applicationStatus = #{applicationStatus} WHERE id = #{id}")
   void updateStudentCourse(StudentCourse studentCourse);
 
   //課題31以降
