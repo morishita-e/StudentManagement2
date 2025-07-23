@@ -11,11 +11,11 @@ CREATE TABLE IF NOT EXISTS students (
     is_deleted BOOLEAN NOT NULL DEFAULT FALSE
 );
 
-CREATE TABLE IF NOT EXISTS students_courses (
-    id INT NOT NULL AUTO_INCREMENT PRIMARY KEY,
-    studentId INT NOT NULL,
-    courseName VARCHAR(100) NOT NULL,
-    courseStartAt DATETIME NOT NULL,
-    courseEndAt DATETIME NOT NULL,
-    applicationStatus VARCHAR(20) NOT NULL DEFAULT '仮申込'
+CREATE TABLE IF NOT EXISTS "students_courses" (
+    "id" INT AUTO_INCREMENT PRIMARY KEY,
+    "studentId" INT NOT NULL,
+    "courseName" VARCHAR(100) NOT NULL,
+    "courseStartAt" DATETIME NOT NULL,
+    "courseEndAt" DATETIME NOT NULL,
+    "applicationStatus" VARCHAR(20) NOT NULL DEFAULT '仮申込'
 );
