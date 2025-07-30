@@ -15,7 +15,6 @@ env:
 jobs:
   build:
     runs-on: ubuntu-latest
-
     steps:
       - uses: actions/checkout@v4
 
@@ -37,54 +36,53 @@ jobs:
       - name: Build with Gradle Wrapper
         run: ./gradlew bootJar
 
-      - name: SCP jar to EC2
+      - name: Build with Gradle Wrapper
         env:
           PRIVATE_KEY: ${{ secrets.AWS_EC2_PRIVATE_KEY }}
         run: |
           echo "$PRIVATE_KEY" > private_key && chmod 600 private_key
           scp -o StrictHostKeyChecking=no -i private_key $SRC_PATH $EC2_USER@$EC2_HOST:$DEST_PATH
-
       - name: SSH Application Deploy
         uses: appleboy/ssh-action@master
         with:
           host: ${{ env.EC2_HOST }}
           username: ${{ env.EC2_USER }}
-          key: ${{ secrets.AWS_EC2_PRIVATE_KEY }}
+          key: ${{ secrets.EC2_PRIVATE_KEY }}
           envs: DEST_PATH
           script: |
             sudo yum update -y
             if [ -f /etc/systemd/system/StudentManagement.service ]; then
               echo "already exists Service File"
             else
-              sudo bash -c 'cat <<EOF > /etc/systemd/system/StudentManagement.service
-  [Unit]
-  Description=StudentManagement app
-  
-  [Service]
-  ExecStart=/usr/bin/java -jar ${DEST_PATH}
-  EnvironmentFile=/etc/sysconfig/StudentManagement
-  Restart=no
-  Type=simple
-  User=ec2-user
-  Group=ec2-user
-  SuccessExitStatus=143
-  
-  [Install]
-  WantedBy=multi-user.target
-  EOF'
-  fi
-  
-  if sudo systemctl status StudentManagement 2>&1 | grep "Active: active (running)"; then
-    echo "Service already running"
-    else
-    sudo systemctl start StudentManagement
-    fi
+            cat <<EDL | sudo tee -a /etc/systemd/system/StudentManagement.service
+      [ Unit ]
+      Description=StudentManagement app
 
-  # ▼ 追加: テストレポートをアップロードする
-- name: Upload Test Report
-  if: failure()
-  uses: actions/upload-artifact@v4
-  with:
-    name: test-report
-    path: build/reports/tests/test
+      [ Service ]
+      ExecStart=java -jar ${DEST_PATH}
+      EnvironmentFile=/etc/sysconfig/StudentManagement
+      Restart=no
+      Type=simple
+      User=ec2-user
+      Group=ec2-user
+      SuccessExitStatus=143
 
+      [ Install ]
+      WantedBy=multi-user.target
+      EDL
+      fi
+      
+      sudo systemctl daemon-reload
+      if sudo systemctl status StudentManagement 2>&1 | grep "Active: active (running)" ; then
+        echo "Service already running"
+      else
+      sudo systemctl start StudentManagement
+      fi
+
+      # ▼ 追加: テストレポートをアップロードする
+      - name: Upload Test Report
+        if: failure() # テストが失敗した場合のみ
+        uses: actions/upload-artifact@v4
+        with:
+          name: test-report
+          path: build/reports/tests/test
