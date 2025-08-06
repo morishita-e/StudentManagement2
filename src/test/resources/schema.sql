@@ -1,14 +1,14 @@
 CREATE TABLE IF NOT EXISTS students (
     id INT PRIMARY KEY AUTO_INCREMENT,
     name VARCHAR(100) NOT NULL,
-    kanaName VARCHAR(100) NOT NULL,
+    kana_name VARCHAR(100) NOT NULL,
     nickname VARCHAR(100) NOT NULL,
     email VARCHAR(100) NOT NULL,
     area VARCHAR(100) NOT NULL,
     age INT,
     sex VARCHAR(10) NOT NULL,
     remark VARCHAR(255),
-    isDeleted BOOLEAN NOT NULL DEFAULT FALSE
+    is_deleted BOOLEAN NOT NULL DEFAULT FALSE
 );
 
 CREATE TABLE IF NOT EXISTS studentsCourses (
