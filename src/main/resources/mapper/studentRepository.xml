@@ -10,10 +10,72 @@
   </select>
 
   <!-- 受講生の検索 -->
-  <select id="searchStudent" resultType="raisetech.StudentManagement.data.Student">
+  <select id="searchStudent" parameterType="java.lang.Integer" resultType="raisetech.StudentManagement.data.Student">
     SELECT *
     FROM students
     WHERE id = #{id}
+  </select>
+
+  <!-- 受講生コース情報の全件検索 -->
+  <select id="searchStudentCourseList" resultType="raisetech.StudentManagement.data.StudentCourse">
+    SELECT *
+    FROM students_courses
+  </select>
+
+  <!-- 受講生IDに紐づくコース情報検索 -->
+  <select id="searchStudentCourse" parameterType="java.lang.Integer" resultType="raisetech.StudentManagement.data.StudentCourse">
+    SELECT *
+    FROM students_courses
+    WHERE studentId = #{studentId}
+  </select>
+
+  <!-- 受講生登録 -->
+  <insert id="registerStudent" parameterType="raisetech.StudentManagement.data.Student" useGeneratedKeys="true" keyProperty="id">
+    INSERT INTO students (name, kana_name, nickname, email, area, age, sex, remark, is_deleted)
+    VALUES (#{name}, #{kanaName}, #{nickname}, #{email}, #{area}, #{age}, #{sex}, #{remark}, false)
+  </insert>
+
+  <!-- 受講生コース登録 -->
+  <insert id="registerStudentCourse" parameterType="raisetech.StudentManagement.data.StudentCourse" useGeneratedKeys="true" keyProperty="id">
+    INSERT INTO students_courses (studentId, courseName, courseStartAt, courseEndAt, applicationStatus)
+    VALUES (#{studentId}, #{courseName}, #{courseStartAt}, #{courseEndAt}, #{applicationStatus})
+  </insert>
+
+  <!-- 受講生更新 -->
+  <update id="updateStudent" parameterType="raisetech.StudentManagement.data.Student">
+    UPDATE students SET
+    name = #{name},
+    kana_name = #{kanaName},
+    nickname = #{nickname},
+    email = #{email},
+    area = #{area},
+    age = #{age},
+    sex = #{sex},
+    remark = #{remark},
+    is_deleted = #{isDeleted}
+    WHERE id = #{id}
+  </update>
+
+  <!-- 受講生コース更新 -->
+  <update id="updateStudentCourse" parameterType="raisetech.StudentManagement.data.StudentCourse">
+    UPDATE students_courses SET
+    courseName = #{courseName},
+    applicationStatus = #{applicationStatus}
+    WHERE id = #{id}
+  </update>
+
+  <!-- 名前で受講生検索（部分一致） -->
+  <select id="findByName" parameterType="string" resultType="raisetech.StudentManagement.data.Student">
+    SELECT *
+    FROM students
+    WHERE name LIKE CONCAT('%', #{name}, '%') AND is_deleted = false
+  </select>
+
+  <!-- メールで受講生検索（完全一致） -->
+  <select id="findByEmail" parameterType="string" resultType="raisetech.StudentManagement.data.Student">
+    SELECT *
+    FROM students
+    WHERE email = #{email} AND is_deleted = false
   </select>
 
 </mapper>
