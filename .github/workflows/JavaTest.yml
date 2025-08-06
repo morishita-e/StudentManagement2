@@ -3,16 +3,14 @@ name: Java CI with Gradle
 on:
   push:
     branches:
-      - master
       - XML実験
   pull_request:
     branches:
-      - master
       - XML実験
 
 env:
   EC2_USER: 'ec2-user'
-  EC2_HOST: '57.181.32.208'
+  EC2_HOST: '18.181.164.83'
   SRC_PATH: 'build/libs/*.jar'
   DEST_PATH: '/home/ec2-user/StudentManagement.jar'
 
