@@ -17,5 +17,5 @@ CREATE TABLE IF NOT EXISTS students_courses (
     courseName VARCHAR(100) NOT NULL,
     courseStartAt TIMESTAMP NOT NULL,
     courseEndAt TIMESTAMP NOT NULL,
-    applicationStatus VARCHAR(20) NOT NULL
+    applicationStatus VARCHAR(20) NOT NULL DEFAULT '仮申込'
 );
