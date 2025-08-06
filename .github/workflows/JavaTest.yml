@@ -2,9 +2,13 @@ name: Java CI with Gradle
 
 on:
   push:
-    branches: [ "master" ]
+    branches:
+      - master
+      - XML実験
   pull_request:
-    branches: [ "master" ]
+    branches:
+      - master
+      - XML実験
 
 env:
   EC2_USER: 'ec2-user'
@@ -36,12 +40,13 @@ jobs:
       - name: Build with Gradle Wrapper
         run: ./gradlew bootJar
 
-      - name: Build with Gradle Wrapper
+      - name: Deploy JAR to EC2
         env:
           PRIVATE_KEY: ${{ secrets.AWS_EC2_PRIVATE_KEY }}
         run: |
           echo "$PRIVATE_KEY" > private_key && chmod 600 private_key
           scp -o StrictHostKeyChecking=no -i private_key $SRC_PATH $EC2_USER@$EC2_HOST:$DEST_PATH
+
       - name: SSH Application Deploy
         uses: appleboy/ssh-action@master
         with:
@@ -54,10 +59,9 @@ jobs:
             if sudo systemctl status StudentManagement 2>&1 | grep "Active: active (running)" ; then
               echo "Service already running"
             else
-            sudo systemctl start StudentManagement
+              sudo systemctl start StudentManagement
             fi
 
-      # ▼ 追加: テストレポートをアップロードする
       - name: Upload Test Report
         if: failure() # テストが失敗した場合のみ
         uses: actions/upload-artifact@v4
