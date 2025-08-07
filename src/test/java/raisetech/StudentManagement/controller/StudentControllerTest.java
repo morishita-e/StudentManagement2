@@ -36,7 +36,6 @@ import raisetech.StudentManagement.data.StudentCourse;
 import raisetech.StudentManagement.domain.StudentDetail;
 import raisetech.StudentManagement.service.StudentService;
 
-
 @WebMvcTest(StudentController.class)
 class StudentControllerTest {
 
